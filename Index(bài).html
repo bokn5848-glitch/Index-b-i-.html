@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Game Đếm Nút</title>
+<style>
+body{
+  font-family:Arial;
+  background:#0f7a3d;
+  color:#fff;
+  text-align:center;
+  margin:0;
+  padding:20px
+}
+.board{
+  display:flex;
+  justify-content:space-around;
+  margin-top:20px
+}
+.area{
+  background:rgba(0,0,0,0.3);
+  padding:15px;
+  border-radius:12px;
+  width:45%
+}
+.cards{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:10px 0
+}
+.card{
+  width:70px;
+  height:100px;
+  background:#fff;
+  color:#000;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:bold
+}
+.card.red{color:red}
+button{
+  padding:10px 20px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:15px
+}
+#result{
+  font-size:22px;
+  margin-top:15px;
+  font-weight:bold
+}
+#coin{
+  font-size:18px;
+  margin-top:10px
+}
+</style>
+</head>
+
+<body>
+
+<h1>🃏 Game Đếm Nút</h1>
+<div id="coin">💰 Xu: <span id="coinValue">0</span></div>
+
+<div class="board">
+  <div class="area">
+    <h2>👤 Bạn</h2>
+    <div class="cards" id="playerCards"></div>
+    <div>Nút: <span id="playerPoint">0</span></div>
+  </div>
+
+  <div class="area">
+    <h2>🤖 Máy</h2>
+    <div class="cards" id="botCards"></div>
+    <div>Nút: <span id="botPoint">0</span></div>
+  </div>
+</div>
+
+<button onclick="play()">🎲 Chia bài (100 xu)</button>
+<button onclick="resetCoin()">🔄 Reset xu</button>
+
+<div id="result"></div>
+
+<script>
+/* ===== TIỀN XU ===== */
+let coin=Number(localStorage.getItem("coin"))||1000;
+updateCoin();
+
+function updateCoin(){
+  coinValue.innerText=coin;
+  localStorage.setItem("coin",coin);
+}
+function resetCoin(){
+  if(confirm("Reset xu về 1000?")){
+    coin=1000;
+    updateCoin();
+    result.innerText="";
+  }
+}
+
+/* ===== BÀI ===== */
+const suits=[
+  {s:"♠",c:"black"},
+  {s:"♣",c:"black"},
+  {s:"♥",c:"red"},
+  {s:"♦",c:"red"}
+];
+
+function randomCard(){
+  const v=Math.floor(Math.random()*13)+1;
+  const suit=suits[Math.floor(Math.random()*4)];
+  let text=v,point=v;
+  if(v===11){text="J";point=10}
+  if(v===12){text="Q";point=10}
+  if(v===13){text="K";point=10}
+  return {text,point,suit:suit.s,color:suit.c};
+}
+
+function drawCards(){
+  return [randomCard(),randomCard(),randomCard()];
+}
+
+function calcPoint(cards){
+  return cards.reduce((a,b)=>a+b.point,0)%10;
+}
+
+function showCards(el,cards){
+  el.innerHTML="";
+  cards.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="card "+(c.color==="red"?"red":"");
+    d.innerHTML=`${c.text}<br>${c.suit}`;
+    el.appendChild(d);
+  });
+}
+
+/* ===== CHƠI ===== */
+function play(){
+  if(coin<100){
+    alert("❌ Bạn không đủ xu!");
+    return;
+  }
+
+  const pCards=drawCards();
+  const bCards=drawCards();
+
+  const pPoint=calcPoint(pCards);
+  const bPoint=calcPoint(bCards);
+
+  showCards(playerCards,pCards);
+  showCards(botCards,bCards);
+
+  playerPoint.innerText=pPoint;
+  botPoint.innerText=bPoint;
+
+  if(pPoint>bPoint){
+    coin+=100;
+    result.innerText="🎉 Thắng +100 xu";
+  }
+  else if(pPoint<bPoint){
+    coin-=100;
+    result.innerText="😢 Thua -100 xu";
+  }
+  else{
+    result.innerText="🤝 Hòa – không mất xu";
+  }
+  updateCoin();
+}
+</script>
+
+</body>
+</html>
