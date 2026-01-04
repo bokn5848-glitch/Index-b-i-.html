@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Game Đếm Nút</title>
+<title>Game Đếm Nút Úp Bài</title>
 <style>
 body{
   font-family:Arial;
@@ -33,56 +33,55 @@ body{
   width:70px;
   height:100px;
   background:#fff;
-  color:#000;
   border-radius:10px;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   font-size:22px;
-  font-weight:bold
+  font-weight:bold;
+  color:#000
 }
 .card.red{color:red}
+.card.back{
+  background:#1e3c72;
+  color:#fff;
+  font-size:28px
+}
 button{
-  padding:10px 20px;
+  padding:10px 18px;
   font-size:16px;
   border:none;
   border-radius:8px;
   cursor:pointer;
-  margin-top:15px
+  margin:6px
 }
-#result{
-  font-size:22px;
-  margin-top:15px;
-  font-weight:bold
-}
-#coin{
-  font-size:18px;
-  margin-top:10px
-}
+#coin{font-size:18px;margin-top:10px}
+#result{font-size:22px;margin-top:15px;font-weight:bold}
 </style>
 </head>
 
 <body>
 
-<h1>🃏 Game Đếm Nút</h1>
+<h1>🃏 Game Đếm Nút (Úp Bài)</h1>
 <div id="coin">💰 Xu: <span id="coinValue">0</span></div>
 
 <div class="board">
   <div class="area">
     <h2>👤 Bạn</h2>
     <div class="cards" id="playerCards"></div>
-    <div>Nút: <span id="playerPoint">0</span></div>
+    <div>Nút: <span id="playerPoint">?</span></div>
   </div>
 
   <div class="area">
     <h2>🤖 Máy</h2>
     <div class="cards" id="botCards"></div>
-    <div>Nút: <span id="botPoint">0</span></div>
+    <div>Nút: <span id="botPoint">?</span></div>
   </div>
 </div>
 
 <button onclick="play()">🎲 Chia bài (100 xu)</button>
+<button onclick="reveal()">👁️ Lật bài</button>
 <button onclick="resetCoin()">🔄 Reset xu</button>
 
 <div id="result"></div>
@@ -130,12 +129,21 @@ function calcPoint(cards){
   return cards.reduce((a,b)=>a+b.point,0)%10;
 }
 
+/* ===== HIỂN THỊ ===== */
+let revealed=false;
+let pCards=[],bCards=[];
+
 function showCards(el,cards){
   el.innerHTML="";
   cards.forEach(c=>{
     const d=document.createElement("div");
-    d.className="card "+(c.color==="red"?"red":"");
-    d.innerHTML=`${c.text}<br>${c.suit}`;
+    if(!revealed){
+      d.className="card back";
+      d.innerText="🂠";
+    }else{
+      d.className="card "+(c.color==="red"?"red":"");
+      d.innerHTML=`${c.text}<br>${c.suit}`;
+    }
     el.appendChild(d);
   });
 }
@@ -143,12 +151,24 @@ function showCards(el,cards){
 /* ===== CHƠI ===== */
 function play(){
   if(coin<100){
-    alert("❌ Bạn không đủ xu!");
+    alert("❌ Không đủ xu!");
     return;
   }
+  revealed=false;
+  playerPoint.innerText="?";
+  botPoint.innerText="?";
+  result.innerText="🂠 Bài đã chia – bấm Lật bài";
 
-  const pCards=drawCards();
-  const bCards=drawCards();
+  pCards=drawCards();
+  bCards=drawCards();
+
+  showCards(playerCards,pCards);
+  showCards(botCards,bCards);
+}
+
+function reveal(){
+  if(revealed) return;
+  revealed=true;
 
   const pPoint=calcPoint(pCards);
   const bPoint=calcPoint(bCards);
@@ -162,13 +182,11 @@ function play(){
   if(pPoint>bPoint){
     coin+=100;
     result.innerText="🎉 Thắng +100 xu";
-  }
-  else if(pPoint<bPoint){
+  }else if(pPoint<bPoint){
     coin-=100;
     result.innerText="😢 Thua -100 xu";
-  }
-  else{
-    result.innerText="🤝 Hòa – không mất xu";
+  }else{
+    result.innerText="🤝 Hòa";
   }
   updateCoin();
 }
